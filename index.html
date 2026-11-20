@@ -1,0 +1,398 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DOMPET SANTRI — Life Simulator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg:#f1eee5;--ink:#171717;--paper:#fffdf7;
+  --red:#ef5036;--blue:#354ee0;--yellow:#f5d34a;
+  --green:#4caf78;--gray:#d8d3c7;--muted:#77736b;
+  --mono:'DM Mono',monospace;--font:'Space Grotesk',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font)}
+button{font:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--blue);outline-offset:4px}
+.shell{max-width:1450px;margin:auto;padding:0 5%}
+header{padding:22px 0;border-bottom:2px solid var(--ink)}
+.header{display:flex;justify-content:space-between;align-items:center;gap:15px}
+.logo{font-size:16px;font-weight:700;letter-spacing:3px}
+.logo span{color:var(--red)}
+.meta{font:10px var(--mono);letter-spacing:2px}
+.progress{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:18px}
+.progress div{height:7px;border:1px solid var(--ink);background:var(--gray)}
+.progress div.active{background:var(--red)}
+.eyebrow{font:10px var(--mono);letter-spacing:3px}
+.intro{min-height:78vh;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:55px;padding:65px 0;animation:enter .6s}
+.intro h1{font-size:clamp(65px,10vw,140px);line-height:.83;letter-spacing:-9px;margin-top:25px}
+.intro h1 span{color:var(--red)}
+.desc{color:var(--muted);line-height:1.8;max-width:460px;margin-top:28px;font-size:15px}
+.art{background:var(--yellow);border:3px solid var(--ink);box-shadow:10px 10px 0 var(--ink);padding:25px;min-height:350px;display:flex;flex-direction:column;justify-content:space-between;transform:rotate(2deg)}
+.art-top,.art-bottom{display:flex;justify-content:space-between;font:10px var(--mono);letter-spacing:2px}
+.symbol{font-size:clamp(130px,20vw,220px);font-weight:700;text-align:center;line-height:.8}
+.primary,.action{background:var(--red);border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:17px 25px;font-weight:700;transition:.15s}
+.primary{margin-top:30px}
+.primary:hover,.action:hover{transform:translate(-3px,-3px);box-shadow:8px 8px 0 var(--ink)}
+.primary:active,.action:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.game{display:none;padding:35px 0 80px;animation:enter .4s}
+.game.show{display:block}
+.back{border:0;background:transparent;font-weight:700;margin-bottom:30px}
+.grid{display:grid;grid-template-columns:.82fr 1.18fr;gap:50px}
+.label{font:10px var(--mono);letter-spacing:2px;border-bottom:2px solid var(--ink);padding-bottom:12px;margin:20px 0}
+.balance-card{background:var(--ink);color:white;padding:24px;border:3px solid var(--ink);box-shadow:7px 7px 0 var(--red)}
+.balance-card small{font:10px var(--mono);color:#aaa}
+.balance{font:700 clamp(28px,4vw,48px) var(--mono);letter-spacing:-3px;color:var(--green);margin:14px 0;overflow-wrap:anywhere}
+.balance-note{font:9px var(--mono);color:#aaa}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.stat{padding:14px;border:2px solid var(--ink);background:var(--paper)}
+.stat:nth-child(2){background:var(--yellow)}
+.stat:nth-child(3){background:#d9e7d5}
+.stat:nth-child(4){background:#dce2ff}
+.stat small{display:block;font:9px var(--mono);color:var(--muted);margin-bottom:7px}
+.stat strong{font-size:17px}
+.ledger-row{display:flex;justify-content:space-between;gap:10px;padding:11px 2px;border-bottom:1px dashed #aaa;font-size:12px}
+.ledger-row strong{font:10px var(--mono);text-align:right}
+.ledger-row small{font:9px var(--mono);color:var(--muted)}
+.meter{height:16px;border:2px solid var(--ink);background:white;margin:12px 0;overflow:hidden}
+.meter-fill{height:100%;width:0;background:var(--red);transition:width .5s}
+.meter-caption{display:flex;justify-content:space-between;font:9px var(--mono);color:var(--muted)}
+.saving-box{background:var(--yellow);border:2px solid var(--ink);padding:16px}
+.saving-box strong{font:700 23px var(--mono)}
+.saving-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:13px}
+.saving-actions button{padding:10px 3px;background:var(--paper);border:2px solid var(--ink);box-shadow:2px 2px 0 var(--ink);font:10px var(--mono);font-weight:700}
+.saving-actions button:hover{background:var(--red)}
+.target-select{width:100%;padding:10px;background:var(--paper);border:2px solid var(--ink);margin-top:12px;font:11px var(--mono)}
+.tip-card{background:var(--blue);color:white;border:3px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:19px}
+.tip-card small{color:var(--yellow);font:9px var(--mono);letter-spacing:2px}
+.tip-card h3{font-size:19px;margin:12px 0}
+.tip-card p{font-size:12px;line-height:1.8;color:#e4e6ff}
+.story-meta{display:flex;justify-content:space-between;gap:10px;font:10px var(--mono);letter-spacing:2px;color:var(--muted)}
+.stamp{display:inline-block;background:var(--yellow);border:2px solid var(--ink);box-shadow:3px 3px 0 var(--ink);padding:8px 12px;margin:25px 0 20px;font:10px var(--mono);transform:rotate(-2deg)}
+.story-title{font-size:clamp(48px,7vw,90px);line-height:.9;letter-spacing:-6px;animation:enter .4s}
+.story-desc{color:var(--muted);line-height:1.8;font-size:14px;margin-top:20px;max-width:550px}
+.event{background:var(--paper);border:3px solid var(--ink);box-shadow:7px 7px 0 var(--ink);padding:25px;margin-top:35px;animation:slide .4s}
+.event-top{display:flex;justify-content:space-between;gap:10px;font:10px var(--mono);letter-spacing:2px;color:var(--red)}
+.event h2{font-size:25px;margin:17px 0 9px}
+.event p{font-size:13px;line-height:1.8;color:var(--muted)}
+.choices{display:grid;gap:11px;margin-top:22px}
+.choice{display:flex;align-items:center;gap:12px;text-align:left;padding:16px;border:2px solid var(--ink);background:var(--bg);box-shadow:3px 3px 0 var(--ink);font-size:12px;font-weight:700;transition:.15s}
+.choice:hover{background:var(--yellow);transform:translate(-2px,-2px);box-shadow:5px 5px 0 var(--ink)}
+.choice.selected{background:var(--blue);color:white}
+.choice:disabled{cursor:default;opacity:.65}
+.choice-num{font:11px var(--mono);color:var(--red)}
+.choice.selected .choice-num{color:var(--yellow)}
+.cost{margin-left:auto;font:10px var(--mono);white-space:nowrap}
+.result{display:none;background:#dcebd8;border:2px solid var(--ink);border-left:8px solid var(--green);padding:17px;margin-top:18px;font-size:13px;line-height:1.8}
+.result.show{display:block;animation:enter .3s}
+.action{width:100%;margin-top:24px}
+.action:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.footer{text-align:center;color:var(--muted);font:9px var(--mono);letter-spacing:2px;margin-top:25px}
+.report{display:grid;gap:12px}
+.report-card{padding:17px;border:2px solid var(--ink);background:var(--yellow);line-height:1.8;font-size:13px}
+.report-card.blue{background:#dce2ff}
+.report-card.green{background:#d9e7d5}
+.report-card h3{font-size:19px;margin-bottom:9px}
+.report-card p{margin:5px 0}
+.report-card strong{font-family:var(--mono)}
+.toast{position:fixed;bottom:25px;left:50%;transform:translate(-50%,30px);opacity:0;background:var(--ink);color:white;border:2px solid var(--red);padding:13px 20px;font:11px var(--mono);z-index:5;transition:.25s;pointer-events:none;max-width:90%;text-align:center}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@keyframes enter{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slide{from{opacity:0;transform:translateX(15px)}to{opacity:1;transform:translateX(0)}}
+@media(max-width:850px){.intro,.grid{grid-template-columns:1fr}.intro{gap:40px}.grid{gap:45px}.art{min-height:260px}.symbol{font-size:150px}}
+@media(max-width:500px){.shell{padding:0 6%}.intro h1{font-size:65px;letter-spacing:-5px}.story-title{font-size:48px;letter-spacing:-3px}.event{padding:18px}.balance{font-size:27px}.choice{padding:13px 10px}.saving-actions button{font-size:9px}}
+</style>
+</head>
+<body>
+<div class="shell">
+<header>
+  <div class="header">
+    <div class="logo">DOMPET<span>.</span>SANTRI</div>
+    <div class="meta" id="headerMeta">LIFE SIMULATOR / 003</div>
+  </div>
+  <div class="progress" id="progress">
+    <div></div><div></div><div></div><div></div>
+  </div>
+</header>
+
+<section class="intro" id="intro">
+  <div>
+    <div class="eyebrow">A LIFE SIMULATION GAME / 2026</div>
+    <h1>HIDUP<br>DI <span>PONDOK.</span></h1>
+    <p class="desc">Uang terbatas. Kebutuhan banyak. Empat minggu untuk membuktikan bahwa kamu mampu mengatur kehidupan di pondok.</p>
+    <button class="primary" onclick="startGame()">MULAI PERJALANAN ↗</button>
+  </div>
+  <div class="art">
+    <div class="art-top"><span>EDISI 003</span><span>SIMULASI KEHIDUPAN</span></div>
+    <div class="symbol">◒</div>
+    <div class="art-bottom"><span>4 MINGGU</span><span>8 KEJADIAN</span><span>∞ PILIHAN</span></div>
+  </div>
+</section>
+
+<section class="game" id="game">
+<button class="back" onclick="restartAsk()">← ULANGI SIMULASI</button>
+<div class="grid">
+<aside>
+  <div class="label">01 / MEJA KEUANGAN</div>
+  <div class="balance-card">
+    <small>SALDO UANG</small>
+    <div class="balance" id="balance">Rp300.000</div>
+    <div class="balance-note" id="balanceNote">UANG AWAL BULAN</div>
+  </div>
+  <div class="label">02 / KONDISI KARAKTER</div>
+  <div class="stats">
+    <div class="stat"><small>MOOD</small><strong id="mood">70/100</strong></div>
+    <div class="stat"><small>REPUTASI</small><strong id="rep">50/100</strong></div>
+    <div class="stat"><small>KEBUTUHAN</small><strong id="needs">75/100</strong></div>
+    <div class="stat"><small>MINGGU</small><strong id="week">01/04</strong></div>
+  </div>
+  <div class="label">03 / CATATAN TRANSAKSI</div>
+  <div id="ledger"></div>
+  <div class="label">04 / PENGELUARAN</div>
+  <div class="meter"><div class="meter-fill" id="meter"></div></div>
+  <div class="meter-caption"><span>TERPAKAI</span><span id="spentLabel">0%</span></div>
+
+  <div class="label">05 / TABUNGAN PRIBADI</div>
+  <div class="saving-box">
+    <small style="font:9px var(--mono)">TOTAL TABUNGAN</small>
+    <div style="margin:8px 0"><strong id="savings">Rp0</strong></div>
+    <small style="font:9px var(--mono)">TARGET TABUNGAN</small>
+    <select class="target-select" id="target" onchange="setTarget()">
+      <option value="50000">Rp50.000</option>
+      <option value="100000" selected>Rp100.000</option>
+      <option value="150000">Rp150.000</option>
+      <option value="200000">Rp200.000</option>
+    </select>
+    <div class="meter"><div class="meter-fill" id="savingMeter" style="background:var(--blue)"></div></div>
+    <div class="meter-caption"><span>PROGRES TARGET</span><span id="savingPercent">0%</span></div>
+    <div class="saving-actions">
+      <button onclick="saveMoney(5000)">+5 RB</button>
+      <button onclick="saveMoney(10000)">+10 RB</button>
+      <button onclick="saveMoney(20000)">+20 RB</button>
+    </div>
+  </div>
+
+  <div class="label">06 / TIPS KEUANGAN</div>
+  <div class="tip-card">
+    <small>FINANCIAL NOTE / 001</small>
+    <h3 id="tipTitle">Mulai menabung.</h3>
+    <p id="tipText">Sisihkan sebagian uang untuk tabungan sebelum menggunakannya.</p>
+  </div>
+</aside>
+
+<main>
+  <div class="story-meta"><span>SIMULASI KEHIDUPAN</span><span id="eventMeta">EVENT 01/08</span></div>
+  <div class="stamp" id="stamp">BABAK 01 — ADAPTASI</div>
+  <h1 class="story-title" id="storyTitle">Hari pertama dimulai.</h1>
+  <p class="story-desc" id="storyDesc">Setiap keputusan memiliki konsekuensi. Pikirkan baik-baik.</p>
+  <div class="event">
+    <div class="event-top"><span id="eventNumber">KEJADIAN 01</span><span>● LIVE STORY</span></div>
+    <h2 id="eventTitle">Uang bulanan datang!</h2>
+    <p id="eventDesc">Kamu menerima uang bulanan. Bagaimana kamu akan menjalani bulan ini?</p>
+    <div class="choices" id="choices"></div>
+    <div class="result" id="result"></div>
+  </div>
+  <button class="action" id="action" onclick="handleAction()" disabled>PILIH KEPUTUSAN DAHULU</button>
+  <div class="footer" id="footer">MAKE YOUR CHOICE · LIVE YOUR STORY</div>
+</main>
+</div>
+</section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const INITIAL=300000;
+const $=id=>document.getElementById(id);
+const money=n=>"Rp"+n.toLocaleString("id-ID");
+const clamp=n=>Math.max(0,Math.min(100,n));
+
+const events=[
+{week:1,name:"Godaan jajan",desc:"Teman-teman mengajakmu membeli makanan di luar pondok.",choices:[
+["Ikut jajan bersama teman",25000,10,8,0,"Kamu menikmati waktu bersama teman. Pengeluaran bertambah, tetapi hubungan sosial semakin dekat."],
+["Menolak dan menyimpan uang",0,-3,0,0,"Kamu berhasil menjaga uang. Keputusan sederhana yang membantu keuanganmu."],
+["Membeli makanan paling murah",10000,5,3,0,"Kamu tetap menikmati waktu bersama teman dengan biaya lebih ringan."]]},
+{week:1,name:"Persediaan sabun",desc:"Sabun mandimu hampir habis. Kamu harus menentukan tindakan.",choices:[
+["Membeli sabun baru",12000,5,0,10,"Persediaan sabun kembali aman. Kebutuhan dasar terpenuhi."],
+["Meminjam dari teman",0,0,5,3,"Kamu mendapat bantuan dari teman. Jangan lupa mengembalikannya."],
+["Menunda pembelian",0,-8,0,-12,"Uang aman, tetapi kebutuhan kebersihan belum terpenuhi."]]},
+{week:2,name:"Tugas mendadak",desc:"Guru memberikan tugas yang membutuhkan perlengkapan tambahan.",choices:[
+["Membeli perlengkapan lengkap",30000,5,10,5,"Tugas bisa diselesaikan dengan baik. Kamu lebih siap belajar."],
+["Meminjam perlengkapan",5000,2,5,2,"Kamu menyelesaikan tugas dengan biaya lebih ringan."],
+["Memakai barang yang tersedia",0,-2,0,-2,"Kamu memaksimalkan barang yang sudah dimiliki."]]},
+{week:2,name:"Makan bersama",desc:"Teman sekamar mengajakmu makan bersama setelah kegiatan pondok.",choices:[
+["Ikut makan bersama",20000,12,10,5,"Kamu menikmati kebersamaan dan suasana menjadi lebih akrab."],
+["Menggunakan jatah pondok",0,2,0,3,"Kamu memilih makanan yang sudah tersedia."],
+["Membeli camilan kecil",8000,5,3,0,"Kamu tetap bisa menikmati waktu santai."]]},
+{week:3,name:"Kegiatan pondok",desc:"Ada kegiatan khusus. Kamu perlu mempersiapkan beberapa kebutuhan.",choices:[
+["Berpartisipasi penuh",25000,10,15,5,"Kamu mendapat pengalaman baru dan dikenal lebih aktif."],
+["Ikut dengan persiapan sederhana",10000,5,8,2,"Kamu tetap berpartisipasi dengan pengeluaran lebih sedikit."],
+["Tidak ikut kegiatan",0,-5,-5,0,"Kamu punya waktu sendiri, tetapi melewatkan kesempatan."]]},
+{week:3,name:"Teman butuh bantuan",desc:"Seorang teman sedang kekurangan uang untuk membeli kebutuhan penting.",choices:[
+["Membantu dengan uang",20000,10,15,0,"Kamu membantu teman yang sedang kesulitan."],
+["Membantu mencari solusi",0,8,10,0,"Kamu memberikan bantuan tanpa harus mengeluarkan uang."],
+["Memprioritaskan kebutuhan sendiri",0,0,-2,0,"Kamu memilih menjaga uang untuk kebutuhanmu sendiri."]]},
+{week:4,name:"Godaan akhir bulan",desc:"Uangmu mulai menipis. Teman-teman kembali mengajakmu jajan.",choices:[
+["Tetap ikut jajan",20000,10,5,0,"Kamu menikmati waktu bersama teman, tetapi saldo semakin berkurang."],
+["Menolak demi bertahan",0,-2,0,0,"Kamu menjaga uang untuk kebutuhan yang lebih penting."],
+["Mencari alternatif gratis",0,5,5,0,"Kamu menemukan cara bersenang-senang tanpa mengeluarkan uang."]]},
+{week:4,name:"Hari terakhir",desc:"Bulan hampir berakhir. Kamu ingin memberikan hadiah kecil untuk diri sendiri.",choices:[
+["Membeli hadiah kecil",15000,15,0,0,"Kamu memberikan apresiasi kecil untuk dirimu sendiri."],
+["Menyimpan uang tersisa",0,2,0,0,"Kamu berhasil menjaga saldo sampai akhir bulan."],
+["Berbagi dengan teman",10000,10,12,0,"Kamu menutup bulan dengan berbagi kebahagiaan."]]}
+];
+
+const tips=[
+["Bayar dirimu sendiri dahulu.","Sisihkan sebagian uang bulanan untuk tabungan sebelum digunakan untuk jajan."],
+["Bedakan kebutuhan dan keinginan.","Sabun dan perlengkapan sekolah adalah kebutuhan. Jajan tambahan biasanya merupakan keinginan."],
+["Gunakan metode amplop.","Pisahkan uang untuk kebutuhan, hiburan, dan tabungan agar tidak tercampur."],
+["Jangan remehkan uang kecil.","Menabung Rp5.000 secara konsisten bisa membentuk kebiasaan keuangan yang baik."],
+["Siapkan dana cadangan.","Jangan gunakan seluruh uang untuk rencana yang sudah dibuat. Sisakan ruang untuk kebutuhan mendadak."],
+["Buat target realistis.","Pilih target tabungan yang sesuai kemampuan. Jangan sampai kebutuhan penting terabaikan."]
+];
+
+let s;
+function fresh(){
+ s={balance:INITIAL,spent:0,savings:0,target:100000,mood:70,rep:50,needs:75,index:0,selected:null,phase:"playing",history:[],saveCount:0};
+}
+function startGame(){
+ fresh();
+ $("intro").style.display="none";
+ $("game").classList.add("show");
+ render();showEvent();toast("PERJALANAN DIMULAI!");
+}
+function render(){
+ $("balance").textContent=money(s.balance);
+ $("balanceNote").textContent=Math.round(s.balance/INITIAL*100)+"% UANG AWAL TERSISA";
+ $("mood").textContent=s.mood+"/100";
+ $("rep").textContent=s.rep+"/100";
+ $("needs").textContent=s.needs+"/100";
+ $("week").textContent=String(events[s.index]?.week||4).padStart(2,"0")+"/04";
+ $("savings").textContent=money(s.savings);
+ $("meter").style.width=Math.min(100,s.spent/INITIAL*100)+"%";
+ $("spentLabel").textContent=Math.round(s.spent/INITIAL*100)+"%";
+ $("savingMeter").style.width=Math.min(100,s.savings/s.target*100)+"%";
+ $("savingPercent").textContent=Math.min(100,Math.round(s.savings/s.target*100))+"%";
+ $("progress").innerHTML=[1,2,3,4].map(w=>`<div class="${w<=(events[s.index]?.week||4)?"active":""}"></div>`).join("");
+ $("ledger").innerHTML=`<div class="ledger-row"><span><small>AWL-00</small> Uang bulanan</span><strong>+${money(INITIAL)}</strong></div>`+
+ s.history.slice(-8).map((h,i)=>`<div class="ledger-row"><span><small>${h.type}</small> ${h.name}</span><strong>-${money(h.amount)}</strong></div>`).join("");
+ updateTip();
+}
+function updateTip(){
+ let t;
+ if(s.balance<30000)t=["Waspada pengeluaran!","Saldo semakin sedikit. Prioritaskan kebutuhan penting dan hindari pengeluaran yang tidak mendesak."];
+ else if(s.savings>=s.target)t=["Target tercapai!","Kamu berhasil mencapai target tabungan. Pertahankan kebiasaan baik ini."];
+ else if(s.savings===0&&s.index>=1)t=tips[0];
+ else t=tips[s.index%tips.length];
+ $("tipTitle").textContent=t[0];$("tipText").textContent=t[1];
+}
+function setTarget(){s.target=Number($("target").value);render();}
+function saveMoney(amount){
+ if(s.phase!=="playing"&&s.phase!=="result")return;
+ if(s.balance<amount){toast("SALDO TIDAK MENCUKUPI!");return;}
+ s.balance-=amount;s.savings+=amount;s.saveCount++;
+ s.history.push({type:"TAB",name:"Menabung",amount});
+ render();toast(money(amount)+" BERHASIL DITABUNG!");
+}
+function showEvent(){
+ const e=events[s.index];
+ $("headerMeta").textContent=`BABAK ${e.week}/4`;
+ $("stamp").textContent=`BABAK 0${e.week} — ${["","ADAPTASI","PENGELOLAAN","UJIAN","PENYELESAIAN"][e.week]}`;
+ $("eventMeta").textContent=`EVENT ${s.index+1}/08`;
+ $("eventNumber").textContent=`KEJADIAN 0${s.index+1}`;
+ $("storyTitle").textContent=["Hari-hari di pondok.","Belajar mengatur diri.","Ujian kehidupan.","Akhir perjalanan."][e.week-1];
+ $("storyDesc").textContent="Setiap keputusan memiliki konsekuensi. Pertimbangkan saldo, kebutuhan, dan kondisi dirimu.";
+ $("eventTitle").textContent=e.name;$("eventDesc").textContent=e.desc;
+ $("choices").innerHTML=e.choices.map((c,i)=>`<button class="choice" data-i="${i}"><span class="choice-num">0${i+1}</span><span>${c[0]}</span><span class="cost">${c[1]?money(c[1]):"GRATIS"}</span></button>`).join("");
+ document.querySelectorAll(".choice").forEach(b=>b.addEventListener("click",()=>selectChoice(Number(b.dataset.i))));
+ $("result").classList.remove("show");$("action").disabled=true;$("action").textContent="PILIH KEPUTUSAN DAHULU";s.selected=null;s.phase="playing";
+}
+function selectChoice(i){
+ if(s.phase!=="playing")return;
+ const c=events[s.index].choices[i];
+ if(c[1]>s.balance){toast("UANGMU TIDAK MENCUKUPI!");return;}
+ s.selected=i;
+ document.querySelectorAll(".choice").forEach((b,n)=>b.classList.toggle("selected",n===i));
+ $("action").disabled=false;$("action").textContent="KONFIRMASI PILIHAN →";
+}
+function handleAction(){
+ if(s.phase==="playing")confirmChoice();
+ else if(s.phase==="result")nextEvent();
+ else if(s.phase==="finished")restartGame();
+}
+function confirmChoice(){
+ if(s.selected===null)return;
+ const e=events[s.index],c=e.choices[s.selected];
+ s.balance-=c[1];s.spent+=c[1];
+ s.mood=clamp(s.mood+c[2]);s.rep=clamp(s.rep+c[3]);s.needs=clamp(s.needs+c[4]);
+ if(c[1])s.history.push({type:"TRX",name:e.name,amount:c[1]});
+ $("result").innerHTML=`<strong>KEPUTUSAN TERCATAT.</strong><br>${c[5]}`;
+ $("result").classList.add("show");
+ document.querySelectorAll(".choice").forEach(b=>b.disabled=true);
+ s.phase="result";render();
+ $("action").disabled=false;
+ $("action").textContent=s.index===events.length-1?"LIHAT EVALUASI AKHIR →":"LANJUTKAN CERITA →";
+}
+function nextEvent(){
+ s.index++;
+ if(s.index>=events.length){finishGame();return;}
+ render();showEvent();
+}
+function finishGame(){
+ s.phase="finished";
+ const rate=Math.round(s.savings/INITIAL*100);
+ const score=clamp(Math.round(s.balance/INITIAL*35+rate*0.35+s.mood*.15+s.needs*.15));
+ const rank=score>=80?"MASTER KEUANGAN":score>=60?"SANTRI CERDAS":score>=40?"PEJUANG HEMAT":"BUTUH STRATEGI BARU";
+ const evaluation=score>=80?"Luar biasa! Kamu mampu menjaga keuangan dan kondisi diri dengan baik.":score>=60?"Cukup baik. Pertahankan kebiasaan positif dan tingkatkan konsistensi menabung.":score>=40?"Kamu sudah berusaha. Perhatikan pengeluaran yang kurang penting.":"Kamu perlu menyusun prioritas lebih baik dan mengelola kebutuhan dengan lebih hati-hati.";
+ const advice=s.savings===0?"Bulan depan, cobalah menyisihkan sedikit uang sejak awal.":rate<10?"Kamu sudah mulai menabung. Tingkatkan secara bertahap jika kebutuhan terpenuhi.":s.savings>=s.target?"Target tabungan berhasil dicapai. Pertahankan kebiasaan ini!":"Tabungan sudah terkumpul. Coba buat target yang lebih konsisten.";
+ $("stamp").textContent="LAPORAN AKHIR / 30 HARI";
+ $("storyTitle").textContent="Satu bulan telah berlalu.";
+ $("storyDesc").textContent="Seluruh keputusan sudah dibuat. Sekarang lihat hasil perjalananmu.";
+ $("eventNumber").textContent="FINAL REPORT";
+ $("eventTitle").textContent=rank;
+ $("eventDesc").textContent="Berikut evaluasi perjalanan keuanganmu selama empat minggu.";
+ $("choices").innerHTML=`
+ <div class="report">
+ <div class="report-card"><small>FINANCIAL SCORE</small><h3>${score}/100 — ${rank}</h3><p>${evaluation}</p></div>
+ <div class="report-card blue"><h3>01 / LAPORAN KEUANGAN</h3>
+ <p>Saldo akhir: <strong>${money(s.balance)}</strong></p>
+ <p>Total pengeluaran: <strong>${money(s.spent)}</strong></p>
+ <p>Total tabungan: <strong>${money(s.savings)}</strong></p>
+ <p>Persentase tabungan: <strong>${rate}%</strong></p>
+ <p>Target tabungan: <strong>${money(s.target)}</strong></p></div>
+ <div class="report-card green"><h3>02 / KONDISI DIRI</h3>
+ <p>Mood: ${s.mood}/100</p><p>Reputasi: ${s.rep}/100</p><p>Kebutuhan: ${s.needs}/100</p></div>
+ <div class="report-card"><h3>03 / EVALUASI MENABUNG</h3>
+ <p>${advice}</p><p>Jumlah aktivitas menabung: ${s.saveCount} kali.</p></div>
+ <div class="report-card blue"><h3>04 / REKOMENDASI BULAN DEPAN</h3>
+ <p>• Sisihkan uang di awal bulan.</p>
+ <p>• Dahulukan kebutuhan daripada keinginan.</p>
+ <p>• Catat pengeluaran kecil sekalipun.</p>
+ <p>• Siapkan dana untuk kebutuhan mendadak.</p>
+ <p>• Gunakan target tabungan yang realistis.</p></div>
+ </div>`;
+ $("result").classList.remove("show");
+ $("action").disabled=false;$("action").textContent="MAIN LAGI ↻";
+ $("footer").textContent="SIMULASI SELESAI · TERIMA KASIH";
+ $("headerMeta").textContent="PERJALANAN SELESAI";
+ render();
+}
+function restartGame(){
+ fresh();$("footer").textContent="MAKE YOUR CHOICE · LIVE YOUR STORY";
+ $("headerMeta").textContent="LIFE SIMULATOR / 003";
+ $("target").value="100000";render();showEvent();
+}
+function restartAsk(){if(confirm("Yakin ingin mengulang simulasi? Semua progres akan dimulai dari awal."))restartGame();}
+let toastTimer;
+function toast(msg){
+ $("toast").textContent=msg;$("toast").classList.add("show");
+ clearTimeout(toastTimer);toastTimer=setTimeout(()=>$("toast").classList.remove("show"),2200);
+}
+fresh();render();
+</script>
+</body>
+</html>
+
